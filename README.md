@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VOLTERX // Drip & Streetwear Archive</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #050505;
+            --card-bg: #0d0d0d;
+            --accent-color: #ffffff; /* Ana vurgu artık Beyaz */
+            --accent-green: #a8ff00; /* Çok hafif deneysel dokunuşlar için ince yeşil */
+            --border-color: #222222;
+            --text-main: #ffffff;
+            --text-muted: #888888;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Space Grotesk', sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); line-height: 1.6; overflow-x: hidden; }
+        
+        /* KAYAN YAZI BANT (MONOCHROME MARQUEE) */
+        .marquee-container { background: #ffffff; color: #000000; font-weight: 700; font-size: 11px; letter-spacing: 2px; padding: 6px 0; overflow: hidden; whitespace: nowrap; display: flex; text-transform: uppercase; }
+        .marquee-content { display: inline-block; animation: marquee 20s linear infinite; }
+        @keyframes marquee { 0% { transform: translateX(0%); } 100% { transform: translateX(-50%); } }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-color); }
+        ::-webkit-scrollbar-thumb { background: #222222; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #ffffff; }
+
+        header { display: flex; justify-content: space-between; align-items: center; padding: 20px 6%; border-bottom: 1px solid var(--border-color); position: sticky; top: 0; background: rgba(5, 5, 5, 0.9); backdrop-filter: blur(12px); z-index: 100; }
+        
+        .logo { font-size: 26px; font-weight: 700; letter-spacing: -1px; cursor: pointer; color: #ffffff; text-transform: uppercase; position: relative; display: inline-block; }
+        .logo span { color: var(--text-muted); }
+        
+        nav { display: flex; align-items: center; gap: 16px; }
+        
+        .user-profile { display: none; align-items: center; gap: 10px; background: #111111; padding: 6px 14px; border: 1px solid var(--border-color); border-radius: 20px; }
+        .user-img { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; border: 1px solid #ffffff; }
+        .user-name { font-size: 12px; font-weight: 600; color: #ffffff; }
+        
+        .nav-btn { background: #111111; border: 1px solid var(--border-color); color: #ffffff; padding: 10px 18px; font-size: 12px; font-weight: 600; border-radius: 8px; cursor: pointer; transition: all 0.25s ease; }
+        .nav-btn:hover { border-color: #ffffff; color: #ffffff; }
+        .cart-btn { background: #ffffff; color: #000000; border-color: #ffffff; font-weight: 700; }
+        .cart-btn:hover { background: #e6e6e6; border-color: #e6e6e6; color: #000000; box-shadow: 0 0 15px rgba(255, 255, 255, 0.2); }
+        .logout-btn { display: none; border-color: #333333; color: #888888; }
+        .logout-btn:hover { background: #ffffff; color: #000000; border-color: #ffffff; }
+
+        /* SEPET SLIDER */
+        .cart-sidebar { position: fixed; top: 0; right: -450px; width: 100%; max-width: 400px; height: 100%; background: #0a0a0a; border-left: 1px solid var(--border-color); z-index: 200; transition: right 0.35s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; padding: 35px 25px; box-shadow: -15px 0 40px rgba(0,0,0,0.9); }
+        .cart-sidebar.open { right: 0; }
+        .cart-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 20px; margin-bottom: 20px; }
+        .cart-header h3 { font-size: 16px; font-weight: 700; color: #ffffff; letter-spacing: 1px; }
+        .close-cart { font-size: 24px; cursor: pointer; color: var(--text-muted); transition: 0.2s; }
+        .close-cart:hover { color: #ffffff; }
+        .cart-items-list { flex-grow: 1; overflow-y: auto; margin-bottom: 20px; }
+        .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid #1a1a1a; font-size: 13px; }
+        .cart-item-info { display: flex; flex-direction: column; }
+        .remove-item-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 11px; margin-top: 4px; text-align: left; transition: 0.2s; }
+        .remove-item-btn:hover { color: #ff4d4d; }
+        .cart-total-section { border-top: 1px solid var(--border-color); padding-top: 20px; }
+        .total-row { display: flex; justify-content: space-between; font-weight: 700; font-size: 18px; margin-bottom: 20px; color: #ffffff; }
+
+        /* MODALLAR */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.9); backdrop-filter: blur(8px); z-index: 1000; justify-content: center; align-items: center; }
+        .login-box { background: #0d0d0d; padding: 35px; width: 100%; max-width: 400px; border: 1px solid var(--border-color); border-radius: 14px; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.9); }
+        
+        .sim-loader { display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; background: #0d0d0d; border: 1px solid var(--border-color); padding: 40px; border-radius: 14px; }
+        .cyber-bar-container { width: 100%; height: 2px; background: #222222; margin: 20px 0; border-radius: 2px; position: relative; overflow: hidden; }
+        .cyber-bar { width: 0%; height: 100%; background: #ffffff; box-shadow: 0 0 10px #ffffff; border-radius: 2px; }
+        
+        @keyframes loadProgress { 0% { width: 0%; } 50% { width: 70%; } 100% { width: 100%; } }
+        .glow-text { font-size: 13px; font-weight: 700; color: #ffffff; letter-spacing: 1px; }
+
+        .tab-header { display: flex; margin-bottom: 25px; border-bottom: 1px solid var(--border-color); }
+        .tab-btn { flex: 1; background: none; border: none; padding: 10px; font-size: 12px; font-weight: 700; cursor: pointer; color: var(--text-muted); transition: 0.2s; }
+        .tab-btn.active { color: #ffffff; border-bottom: 2px solid #ffffff; }
+        
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; font-size: 11px; font-weight: 600; margin-bottom: 6px; color: var(--text-muted); }
+        .form-group input, .form-group textarea { width: 100%; padding: 12px 14px; border: 1px solid var(--border-color); border-radius: 8px; background: #141414; color: #ffffff; font-size: 13px; transition: all 0.2s; }
+        .form-group input:focus, .form-group textarea:focus { border-color: #ffffff; outline: none; background: #1a1a1a; }
+        
+        .btn { background: #ffffff; color: #000000; border: none; padding: 14px; font-size: 13px; font-weight: 700; border-radius: 8px; cursor: pointer; width: 100%; text-align: center; transition: all 0.25s; }
+        .btn:hover { background: #e6e6e6; box-shadow: 0 0 15px rgba(255, 255, 255, 0.2); }
+        .close-modal { position: absolute; top: 15px; right: 20px; font-size: 22px; cursor: pointer; color: var(--text-muted); transition: 0.2s; }
+        .close-modal:hover { color: #ffffff; }
+
+        /* ÜRÜN DETAY MODAL */
+        .detail-box { background: #0d0d0d; padding: 30px; width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 16px; position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+        @media (max-width: 768px) { .detail-box { grid-template-columns: 1fr; gap: 20px; padding: 20px; } }
+        .detail-img-side { width: 100%; height: 380px; background-size: cover; background-position: center; background-color: #141414; border-radius: 10px; border: 1px solid var(--border-color); }
+        .detail-info-side { display: flex; flex-direction: column; justify-content: center; }
+
+        /* ANA İÇERİK */
+        .container { max-width: 1240px; margin: 40px auto; padding: 0 20px; }
+
+        /* HERO BANNER */
+        .hero-banner { background: #0d0d0d; border: 1px solid var(--border-color); border-radius: 16px; padding: 50px 40px; margin-bottom: 50px; text-align: center; position: relative; overflow: hidden; }
+        .hero-banner h1 { font-size: 38px; font-weight: 700; letter-spacing: -1px; margin-bottom: 10px; text-transform: uppercase; color: #ffffff; }
+        .hero-banner p { color: var(--text-muted); font-size: 14px; max-width: 500px; margin: 0 auto; }
+
+        /* ADMIN PANEL */
+        .admin-section { display: none; background: #0d0d0d; border: 1px solid var(--border-color); border-radius: 12px; padding: 30px; margin-bottom: 40px; }
+        .admin-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 30px; }
+        @media (max-width: 768px) { .admin-grid { grid-template-columns: 1fr; } }
+        .admin-section h3 { font-size: 14px; font-weight: 700; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; color: #ffffff; text-transform: uppercase; }
+        .guest-log-list { max-height: 220px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; background: #141414; font-size: 12px; color: var(--text-muted); }
+        .guest-log-item { padding: 6px 0; border-bottom: 1px dashed #222222; }
+        .file-input-wrapper { position: relative; overflow: hidden; display: inline-block; width: 100%; }
+        .file-input-wrapper input[type=file] { font-size: 100px; position: absolute; left: 0; top: 0; opacity: 0; cursor: pointer; }
+        .file-input-btn { border: 1px dashed var(--border-color); color: var(--text-muted); background-color: #141414; padding: 12px; font-size: 12px; font-weight: 600; border-radius: 8px; display: block; text-align: center; cursor: pointer; transition: 0.2s; }
+        .file-input-btn:hover { border-color: #ffffff; color: #ffffff; }
+
+        /* MAĞAZA GRİD */
+        .section-title { font-size: 20px; font-weight: 700; margin-bottom: 30px; color: #ffffff; border-bottom: 1px solid var(--border-color); padding-bottom: 14px; display: flex; justify-content: space-between; align-items: center; letter-spacing: -0.5px; }
+        .section-title::after { content: '// DROP 01 ARCHIVE'; font-size: 11px; color: var(--text-muted); font-weight: 700; letter-spacing: 1px; }
+        
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 30px; }
+        .product-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; position: relative; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
+        .product-card:hover { border-color: #ffffff; transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+        
+        .product-badge { position: absolute; top: 26px; left: 26px; background: rgba(0,0,0,0.8); backdrop-filter: blur(6px); color: #ffffff; border: 1px solid #ffffff; font-size: 9px; font-weight: 700; padding: 3px 8px; border-radius: 4px; z-index: 2; text-transform: uppercase; letter-spacing: 1px; }
+
+        .product-image { width: 100%; height: 340px; background-color: #141414; background-size: cover; background-position: center; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 11px; color: var(--text-muted); margin-bottom: 16px; cursor: pointer; transition: transform 0.3s ease; }
+        .product-card:hover .product-image { transform: scale(1.02); }
+        
+        .product-gallery { display: flex; gap: 6px; margin-bottom: 12px; }
+        .gallery-thumb { width: 42px; height: 42px; background-size: cover; background-position: center; border-radius: 6px; border: 1px solid var(--border-color); cursor: pointer; transition: 0.2s; }
+        .gallery-thumb.active { border-color: #ffffff; }
+        
+        .product-title { font-size: 15px; font-weight: 700; margin-bottom: 4px; color: #ffffff; cursor: pointer; letter-spacing: -0.3px; }
+        .product-title:hover { color: #888888; }
+        .product-desc { font-size: 12px; color: var(--text-muted); margin-bottom: 14px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .product-price { font-size: 18px; font-weight: 700; margin-bottom: 14px; color: #ffffff; }
+        
+        .stock-indicator { font-size: 10px; font-weight: 700; margin-bottom: 14px; display: inline-block; padding: 4px 10px; background: #141414; border: 1px solid var(--border-color); border-radius: 6px; letter-spacing: 0.5px; }
+        .stock-in { color: #888888; }
+        .stock-low { color: var(--accent-green); border-color: var(--accent-green); } /* İnce yeşil dokunuş sadece kritik stok uyarısında tutuldu */
+        .stock-out { color: #444444; border-color: #222222; text-decoration: line-through; }
+        
+        .action-btn { background-color: #ffffff; color: #000000; border: none; padding: 12px; border-radius: 8px; text-align: center; font-weight: 700; font-size: 12px; cursor: pointer; transition: all 0.25s; margin-top: auto; text-transform: uppercase; letter-spacing: 0.5px; }
+        .action-btn:hover:not(:disabled) { background-color: #cccccc; box-shadow: 0 0 15px rgba(255, 255, 255, 0.2); }
+        .action-btn:disabled { background-color: #141414; border: 1px solid var(--border-color); color: #444444; cursor: not-allowed; }
+        
+        .admin-controls { display: none; justify-content: space-between; margin-top: 12px; border-top: 1px solid var(--border-color); padding-top: 12px; }
+        body.admin-mode .admin-controls { display: flex; }
+        .admin-del-btn { background: none; color: #ff4d4d; border: 1px solid rgba(255, 77, 77, 0.3); padding: 6px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; flex-grow: 1; text-align: center; transition: 0.2s; }
+        .admin-del-btn:hover { background: #ff4d4d; color: #ffffff; }
+        
+        footer { text-align: center; padding: 60px 20px; margin-top: 100px; border-top: 1px solid var(--border-color); font-size: 11px; color: var(--text-muted); letter-spacing: 1px; }
+    </style>
+</head>
+<body>
+
+    <!-- KAYAN DUYURU BANDI -->
+    <div class="marquee-container">
+        <div class="marquee-content">
+            VOLTERX ARCHIVE // HEAVYWEIGHT COTTON DROPS // FREE SHIPPING ON ALL ORDERS // STREETWEAR 2026 // VOLTERX ARCHIVE // HEAVYWEIGHT COTTON DROPS // FREE SHIPPING ON ALL ORDERS // STREETWEAR 2026 //
+        </div>
+    </div>
+
+    <!-- ÜST BAR -->
+    <header>
+        <div class="logo" onclick="location.reload()">VOLTERX<span>.</span></div>
+        <nav>
+            <div id="userProfile" class="user-profile">
+                <img id="userImg" class="user-img" src="" alt="Profil">
+                <span id="userName" class="user-name"></span>
+            </div>
+            <button class="nav-btn cart-btn" onclick="openCartWithAuthCheck()">SEPET (<span id="cartCount">0</span>)</button>
+            <button id="logoutNavBtn" class="nav-btn logout-btn" onclick="handleLogout()">ÇIKIŞ YAP</button>
+        </nav>
+    </header>
+
+    <!-- SEPET PANELİ -->
+    <div id="cartSidebar" class="cart-sidebar">
+        <div class="cart-header">
+            <h3>SEPETİNİZ</h3>
+            <span class="close-cart" onclick="toggleCart(false)">&times;</span>
+        </div>
+        <div id="cartItemsList" class="cart-items-list"></div>
+        <div class="cart-total-section">
+            <div class="total-row">
+                <span>TOPLAM:</span>
+                <span id="cartTotalText">0,00 TL</span>
+            </div>
+            <button class="btn" onclick="checkoutViaWhatsApp()">WHATSAPP İLE SİPARİŞ ET</button>
+        </div>
+    </div>
+
+    <!-- GİRİŞ MODAL PENCERESİ VE ANİMASYON KATMANI -->
+    <div id="authModal" class="modal-overlay">
+        <!-- ANA GİRİŞ PENCERESİ -->
+        <div class="login-box" id="loginBoxContent">
+            <span class="close-modal" onclick="closeAuthModal()">&times;</span>
+            <div class="tab-header">
+                <button id="customerTab" class="tab-btn active" onclick="switchTab('customer')">KULLANICI GİRİŞİ</button>
+                <button id="adminTab" class="tab-btn" onclick="switchTab('admin')">YÖNETİCİ</button>
+            </div>
+
+            <!-- MÜŞTERİ FORM ALANI -->
+            <div id="customerForm">
+                <div class="form-group">
+                    <label>KULLANICI ADI / NICK</label>
+                    <input type="text" id="customerNameInput" placeholder="Örn: drip_guy">
+                </div>
+                <button class="btn" onclick="startLoginSimulation('customer')">GİRİŞ YAP</button>
+            </div>
+
+            <!-- YÖNETİCİ FORM ALANI -->
+            <div id="adminForm" style="display: none;">
+                <div class="form-group">
+                    <label>YÖNETİCİ KİMLİĞİ</label>
+                    <input type="text" id="adminUsernameInput" placeholder="Kullanıcı adı">
+                </div>
+                <div class="form-group">
+                    <label>ERİŞİM ANAHTARI</label>
+                    <input type="password" id="adminPasswordInput" placeholder="Şifre">
+                </div>
+                <button class="btn" onclick="startLoginSimulation('admin')">DOĞRULA</button>
+            </div>
+        </div>
+
+        <!-- SİBER ANİMASYON EKRANI -->
+        <div class="login-box sim-loader" id="simulationLoader">
+            <div class="glow-text">ERİŞİM SAĞLANIYOR...</div>
+            <div class="cyber-bar-container">
+                <div class="cyber-bar" id="cyberBarElement"></div>
+            </div>
+            <p style="font-size:11px; color:var(--text-muted);">VOLTERX SERVER // CONNECTING</p>
+        </div>
+    </div>
+
+    <!-- ÜRÜN DETAY MODAL PENCERESİ -->
+    <div id="detailModal" class="modal-overlay">
+        <div class="detail-box">
+            <span class="close-modal" onclick="closeDetailModal()">&times;</span>
+            <div id="detailImage" class="detail-img-side"></div>
+            <div class="detail-info-side">
+                <h2 id="detailTitle" style="font-size:22px; font-weight:700; margin-bottom:12px; color:#ffffff;">Ürün Başlığı</h2>
+                <p id="detailDesc" style="font-size:13px; color:var(--text-muted); margin-bottom:20px; font-weight:400;">Ürün detay ve kumaş araştırma bilgisi.</p>
+                <div id="detailPrice" style="font-size:22px; font-weight:700; margin-bottom:24px; color:#ffffff;">0,00 TL</div>
+                <button id="detailActionBtn" class="btn">SEPETE EKLE</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        
+        <!-- HERO HEADLINE -->
+        <div class="hero-banner">
+            <h1>VOLTERX STREETWEAR ARCHIVE</h1>
+            <p>Ağır gramajlı kumaşlar, özel boxy fit kesimler ve sınırlı sayıda üretilen streetwear parçaları.</p>
+        </div>
+
+        <!-- YÖNETİCİ PANELİ -->
+        <div id="adminSection" class="admin-section">
+            <div class="admin-grid">
+                <div>
+                    <h3>Yeni Parça Yayınla</h3>
+                    <form id="productForm" onsubmit="addProduct(event)">
+                        <div class="form-group">
+                            <label>Ürün Adı</label>
+                            <input type="text" id="prodTitle" placeholder="VOLTERX Drip Tee" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Açıklama & Kumaş Detayı</label>
+                            <textarea id="prodDesc" rows="2" placeholder="450 GSM Heavyweight, French Terry..." required></textarea>
+                        </div>
+                        <div class="form-group" style="display: flex; gap: 15px;">
+                            <div style="flex: 1;">
+                                <label>Fiyat (TL)</label>
+                                <input type="number" id="prodPrice" placeholder="1250" required>
+                            </div>
+                            <div style="flex: 1;">
+                                <label>Stok Adedi</label>
+                                <input type="number" id="prodStock" placeholder="10" required min="0">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Görseller</label>
+                            <div class="file-input-wrapper">
+                                <span class="file-input-btn" id="fileLabel">Fotoğraf Ekle (Çoklu)</span>
+                                <input type="file" id="prodFiles" accept="image/*" multiple onchange="updateFileName()">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn">YAYINLA</button>
+                    </form>
+                </div>
+                <div>
+                    <h3>Müşteri Erişim Günlüğü</h3>
+                    <div id="guestLogList" class="guest-log-list"></div>
+                    <button class="btn" style="margin-top:12px; padding: 10px; font-size:11px; width: auto; background:#141414; border: 1px solid var(--border-color); color:#ffffff;" onclick="clearLogs()">Temizle</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-title">LATEST DROPS</div>
+        <div class="product-grid" id="productGrid"></div>
+    </div>
+
+    <footer>&copy; 2026 VOLTERX ARCHIVE CORP. ALL RIGHTS RESERVED.</footer>
+
+    <script>
+        const tY = "dGFoYQ=="; 
+        const tP = "dGFoYTEyMw==";
+
+        const defaultProducts = [
+            { id: 1, title: "VOLTERX Cyberpunk Heavy Tee", desc: "450 GSM saf pamuk, yıpratılmış efektli street kesim.", price: 1250, stock: 8, images: ["https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=600&auto=format&fit=crop"] },
+            { id: 2, title: "VOLTERX Acid Wash Hoodie", desc: "Özel asit yıkama, çift kat kapüşonlu premium sweatshirt.", price: 2150, stock: 3, images: ["https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=600&auto=format&fit=crop"] }
+        ];
+        
+        let products = JSON.parse(localStorage.getItem('vx_products')) || defaultProducts;
+        let cart = [];
+        let currentTab = 'customer';
+        let pendingAction = null;
+
+        function switchTab(tab) {
+            currentTab = tab;
+            if(tab === 'customer') {
+                document.getElementById('customerTab').classList.add('active');
+                document.getElementById('adminTab').classList.remove('active');
+                document.getElementById('customerForm').style.display = 'block';
+                document.getElementById('adminForm').style.display = 'none';
+            } else {
+                document.getElementById('adminTab').classList.add('active');
+                document.getElementById('customerTab').classList.remove('active');
+                document.getElementById('adminForm').style.display = 'block';
+                document.getElementById('customerForm').style.display = 'none';
+            }
+        }
+
+        function showAuthModal(actionAfterLogin = null) {
+            pendingAction = actionAfterLogin;
+            document.getElementById('authModal').style.display = 'flex';
+            document.getElementById('loginBoxContent').style.display = 'block';
+            document.getElementById('simulationLoader').style.display = 'none';
+        }
+
+        function closeAuthModal() {
+            document.getElementById('authModal').style.display = 'none';
+            pendingAction = null;
+        }
+
+        function openCartWithAuthCheck() {
+            if (!sessionStorage.getItem('currentUser')) { showAuthModal('openCart'); } 
+            else { toggleCart(true); }
+        }
+
+        function startLoginSimulation(type) {
+            if (type === 'customer') {
+                const name = document.getElementById('customerNameInput').value.trim();
+                if(!name) { alert("Lütfen bir kullanıcı adı girin!"); return; }
+                
+                triggerCyberAnimation(() => {
+                    const userData = { displayName: name, role: 'customer', photoURL: "https://img.icons8.com/ios-filled/50/ffffff/user-male-circle.png" };
+                    sessionStorage.setItem('currentUser', JSON.stringify(userData));
+                    recordCustomerLog(name);
+                    applyLoginState(userData);
+                    finalizeLogin();
+                });
+            } else {
+                const user = document.getElementById('adminUsernameInput').value.trim();
+                const pass = document.getElementById('adminPasswordInput').value;
+                
+                if(window.btoa(user) === tY && window.btoa(pass) === tP) {
+                    triggerCyberAnimation(() => {
+                        const userData = { displayName: "TAHA (ADMIN)", role: 'admin', photoURL: "https://img.icons8.com/ios-filled/50/ffffff/admin-settings-male.png" };
+                        sessionStorage.setItem('currentUser', JSON.stringify(userData));
+                        applyLoginState(userData);
+                        finalizeLogin();
+                    });
+                } else {
+                    alert("Hatalı yönetici bilgileri!");
+                }
+            }
+        }
+
+        function triggerCyberAnimation(callback) {
+            document.getElementById('loginBoxContent').style.display = 'none';
+            document.getElementById('simulationLoader').style.display = 'flex';
+            
+            const bar = document.getElementById('cyberBarElement');
+            bar.style.animation = 'none'; 
+            void bar.offsetWidth; 
+            
+            bar.style.animation = 'loadProgress 1.2s cubic-bezier(0.4, 0, 0.2, 1) forwards';
+            setTimeout(callback, 1200);
+        }
+
+        function finalizeLogin() {
+            document.getElementById('authModal').style.display = 'none';
+            if (pendingAction === 'openCart') { toggleCart(true); } 
+            else if (pendingAction === 'whatsappCheckout') { toggleCart(true); checkoutViaWhatsApp(); }
+            pendingAction = null;
+        }
+
+        function applyLoginState(user) {
+            document.getElementById('logoutNavBtn').style.display = "block";
+            const profile = document.getElementById('userProfile');
+            profile.style.display = "flex";
+            document.getElementById('userImg').src = user.photoURL;
+            document.getElementById('userName').textContent = user.displayName;
+
+            if (user.role === 'admin') {
+                document.body.classList.add('admin-mode');
+                document.getElementById('adminSection').style.display = "block";
+                renderLogs();
+            } else {
+                document.body.classList.remove('admin-mode');
+                document.getElementById('adminSection').style.display = "none";
+            }
+            renderProducts();
+        }
+
+        function handleLogout() {
+            sessionStorage.clear();
+            document.body.classList.remove('admin-mode');
+            document.getElementById('adminSection').style.display = "none";
+            document.getElementById('userProfile').style.display = "none";
+            document.getElementById('logoutNavBtn').style.display = "none";
+            document.getElementById('customerNameInput').value = '';
+            document.getElementById('adminUsernameInput').value = '';
+            document.getElementById('adminPasswordInput').value = '';
+            cart = [];
+            updateCartCount();
+            renderProducts();
+        }
+
+        function openProductDetail(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+
+            const firstImg = product.images && product.images.length > 0 ? product.images[0] : '';
+            const detailImgDiv = document.getElementById('detailImage');
+            
+            if(firstImg) { detailImgDiv.style.backgroundImage = `url('${firstImg}')`; }
+            else { detailImgDiv.style.backgroundImage = 'none'; detailImgDiv.innerHTML = '<span style="display:block; text-align:center; padding-top:170px; color:var(--text-muted); font-size:12px;">Görsel Yok</span>'; }
+
+            document.getElementById('detailTitle').textContent = product.title;
+            document.getElementById('detailDesc').textContent = product.desc || "Detaylı açıklama bulunmuyor.";
+            document.getElementById('detailPrice').textContent = product.price.toLocaleString('tr-TR') + " TL";
+
+            const btn = document.getElementById('detailActionBtn');
+            if(product.stock === 0) {
+                btn.textContent = "STOK TÜKENDİ"; btn.disabled = true;
+            } else {
+                btn.textContent = "SEPETE EKLE"; btn.disabled = false;
+                btn.onclick = function() { addToCart(product.id); closeDetailModal(); };
+            }
+            document.getElementById('detailModal').style.display = 'flex';
+        }
+
+        function closeDetailModal() { document.getElementById('detailModal').style.display = 'none'; }
+
+        function updateFileName() {
+            const fileInput = document.getElementById('prodFiles');
+            const label = document.getElementById('fileLabel');
+            label.textContent = fileInput.files.length > 0 ? `${fileInput.files.length} Görsel Seçildi` : "Fotoğraf Ekle (Çoklu)";
+        }
+
+        async function addProduct(event) {
+            event.preventDefault();
+            const title = document.getElementById('prodTitle').value;
+            const desc = document.getElementById('prodDesc').value;
+            const price = parseFloat(document.getElementById('prodPrice').value);
+            const stock = parseInt(document.getElementById('prodStock').value);
+            const fileInput = document.getElementById('prodFiles');
+            let imagesArray = [];
+
+            if (fileInput.files.length > 0) {
+                for (let i = 0; i < fileInput.files.length; i++) {
+                    const base64 = await convertToBase64(fileInput.files[i]);
+                    imagesArray.push(base64);
+                }
+            }
+
+            products.push({ id: Date.now(), title, desc, price, stock, images: imagesArray });
+            localStorage.setItem('vx_products', JSON.stringify(products));
+            renderProducts();
+            document.getElementById('productForm').reset();
+            document.getElementById('fileLabel').textContent = "Fotoğraf Ekle (Çoklu)";
+        }
+
+        function convertToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        function deleteProduct(id) {
+            if(confirm("Bu ürünü silmek istiyor musunuz?")) {
+                products = products.filter(p => p.id !== id);
+                localStorage.setItem('vx_products', JSON.stringify(products));
+                renderProducts();
+            }
+        }
+
+        function changeMainImage(productId, imageUrl, element, event) {
+            event.stopPropagation();
+            const mainImgDiv = document.getElementById(`main-img-${productId}`);
+            if (mainImgDiv) { mainImgDiv.style.backgroundImage = `url('${imageUrl}')`; }
+            const thumbs = document.querySelectorAll(`.thumb-${productId}`);
+            thumbs.forEach(t => t.classList.remove('active'));
+            element.classList.add('active');
+        }
+
+        function toggleCart(show) {
+            const sidebar = document.getElementById('cartSidebar');
+            if (show) { sidebar.classList.add('open'); renderCart(); }
+            else { sidebar.classList.remove('open'); }
+        }
+
+        function addToCart(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+            const existing = cart.find(item => item.id === productId);
+            const currentQuantity = existing ? existing.quantity : 0;
+
+            if (product.stock <= currentQuantity) { alert("Stok limitine ulaştınız."); return; }
+            if (existing) { existing.quantity += 1; } else { cart.push({ ...product, quantity: 1 }); }
+            updateCartCount();
+        }
+
+        function updateCartCount() { document.getElementById('cartCount').textContent = cart.reduce((total, item) => total + item.quantity, 0); }
+
+        function renderCart() {
+            const list = document.getElementById('cartItemsList');
+            const totalText = document.getElementById('cartTotalText');
+            list.innerHTML = '';
+            if (cart.length === 0) {
+                list.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding-top:40px; font-size:13px;">Sepetiniz boş.</div>';
+                totalText.textContent = "0,00 TL"; return;
+            }
+            let total = 0;
+            cart.forEach(item => {
+                const itemTotal = item.price * item.quantity; total += itemTotal;
+                const row = document.createElement('div');
+                row.className = 'cart-item';
+                row.innerHTML = `
+                    <div class="cart-item-info">
+                        <strong>${item.title}</strong>
+                        <span style="color:var(--text-muted);">${item.quantity} x ${item.price.toLocaleString('tr-TR')} TL</span>
+                        <button class="remove-item-btn" onclick="removeFromCart(${item.id})">Kaldır</button>
+                    </div>
+                    <div>${itemTotal.toLocaleString('tr-TR')} TL</div>
+                `;
+                list.appendChild(row);
+            });
+            totalText.textContent = total.toLocaleString('tr-TR') + " TL";
+        }
+
+        function removeFromCart(productId) {
+            const existing = cart.find(item => item.id === productId);
+            if(existing) {
+                if(existing.quantity > 1) { existing.quantity -= 1; }
+                else { cart = cart.filter(item => item.id !== productId); }
+            }
+            updateCartCount();
+            renderCart();
+        }
+
+        function checkoutViaWhatsApp() {
+            if (!sessionStorage.getItem('currentUser')) { toggleCart(false); showAuthModal('whatsappCheckout'); return; }
+            if (cart.length === 0) { alert("Sepetiniz boş!"); return; }
+            
+            const user = JSON.parse(sessionStorage.getItem('currentUser'));
+            let message = `*VOLTERX ARCHIVE SIPARIS*\n\nMüşteri: ${user.displayName}\n\n`;
+            let total = 0;
+            
+            cart.forEach(item => {
+                message += `• ${item.quantity} adet - ${item.title} (${item.price * item.quantity} TL)\n`;
+                total += item.price * item.quantity;
+            });
+            
+            message += `\n*Toplam:* ${total} TL\nSiparişi onaylamak istiyorum.`;
+            const encoded = encodeURIComponent(message);
+            window.open(`https://wa.me/905000000000?text=${encoded}`, '_blank');
+        }
+
+        function recordCustomerLog(name) {
+            let logs = JSON.parse(localStorage.getItem('vx_guest_logs')) || [];
+            const timeString = new Date().toLocaleString('tr-TR');
+            logs.unshift(`${timeString} -> Müşteri: ${name} giriş yaptı.`);
+            localStorage.setItem('vx_guest_logs', JSON.stringify(logs));
+        }
+
+        function renderLogs() {
+            const list = document.getElementById('guestLogList');
+            if(!list) return;
+            let logs = JSON.parse(localStorage.getItem('vx_guest_logs')) || [];
+            list.innerHTML = logs.length === 0 ? '<div style="color:var(--text-muted);">Kayıt bulunmuyor.</div>' : logs.map(l => `<div class="guest-log-item">${l}</div>`).join('');
+        }
+
+        function clearLogs() {
+            if(confirm("Tüm loglar silinsin mi?")) {
+                localStorage.removeItem('vx_guest_logs');
+                renderLogs();
+            }
+        }
+
+        function renderProducts() {
+            const grid = document.getElementById('productGrid');
+            grid.innerHTML = '';
+            
+            products.forEach(p => {
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                
+                const hasImages = p.images && p.images.length > 0;
+                const mainImg = hasImages ? p.images[0] : '';
+                
+                let stockClass = 'stock-in';
+                let stockText = `STOK: ${p.stock}`;
+                if(p.stock === 0) { stockClass = 'stock-out'; stockText = 'TÜKENDİ'; }
+                else if(p.stock <= 5) { stockClass = 'stock-low'; stockText = `SON ${p.stock} PARÇA`; }
+
+                let thumbsHtml = '';
+                if(hasImages && p.images.length > 1) {
+                    thumbsHtml = `<div class="product-gallery">`;
+                    p.images.forEach((img, idx) => {
+                        thumbsHtml += `<div class="gallery-thumb thumb-${p.id} ${idx===0?'active':''}" style="background-image:url('${img}')" onclick="changeMainImage(${p.id}, '${img}', this, event)"></div>`;
+                    });
+                    thumbsHtml += `</div>`;
+                }
+
+                let imgStyle = mainImg ? `background-image: url('${mainImg}')` : '';
+                
+                card.innerHTML = `
+                    <div class="product-badge">HOT DROP</div>
+                    <div class="product-image" id="main-img-${p.id}" style="${imgStyle}" onclick="openProductDetail(${p.id})">
+                        ${!mainImg ? 'Görsel Yok' : ''}
+                    </div>
+                    ${thumbsHtml}
+                    <div class="product-title" onclick="openProductDetail(${p.id})">${p.title}</div>
+                    <div class="product-desc">${p.desc || ''}</div>
+                    <div class="product-price">${p.price.toLocaleString('tr-TR')} TL</div>
+                    <div>
+                        <span class="stock-indicator ${stockClass}">${stockText}</span>
+                    </div>
+                    <button class="action-btn" ${p.stock===0?'disabled':''} onclick="addToCart(${p.id})">
+                        ${p.stock===0?'TÜKENDİ':'SEPETE EKLE'}
+                    </button>
+                    <div class="admin-controls">
+                        <button class="admin-del-btn" onclick="deleteProduct(${p.id})">Sil</button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        window.onload = function() {
+            const user = sessionStorage.getItem('currentUser');
+            if (user) { applyLoginState(JSON.parse(user)); } 
+            else { renderProducts(); }
+        }
+    </script>
+</body>
+</html>
